@@ -1,0 +1,26 @@
+{
+  "triggers": [
+    {
+      "id": "bg-progress-report",
+      "type": "tool",
+      "tool": "Bash",
+      "inputPattern": "run_in_background|curl .*-o |wget ",
+      "lesson": "[lesson:bg-progress-report] 진행형 작업(다운로드/빌드/장기 프로세스)의 '진행 중' 보고는 두 시점 크기/출력 성장을 실측한 후에만 하라. 침묵(에러 없음)은 진행의 증거가 아니다. 파일 mtime 이 현재 시각과 수 분 이상 벌어져 있으면 죽은 것. curl 은 -s 로 에러 숨기지 말고 --retry-all-errors + 로그 파일을 남겨라.",
+      "enabled": true
+    },
+    {
+      "id": "no-run-in-background",
+      "type": "tool",
+      "inputPattern": "\"run_in_background\":\\s*true",
+      "lesson": "[lesson:no-run-in-background] Winter 는 turn 종료 시 SDK 프로세스가 죽는다 — run_in_background 로 띄운 작업은 turn 경계에서 동반 사망한다. '끝나면 보고할게요' 는 구조적으로 불가능한 약속. foreground 로 turn 안에서 끝내라. 진짜 장기 작업만 nohup detach + 로그 파일 + 다음 turn 2-시점 실측.",
+      "enabled": true
+    },
+    {
+      "id": "two-strike-escalation",
+      "type": "prompt",
+      "keywords": ["안바뀌", "안 바뀌", "아직도", "여전히", "그대로인데", "그대로네", "또 안", "또안", "다시 안"],
+      "lesson": "같은 증상 2회째 신고 신호 — 현 가설을 즉시 전면 폐기하라. 검증 범위를 '안 건드린 파일/영역' 까지 확대하고, 솔로 삽질 대신 oracle(설계 재검토) 또는 hermes(외부 해결책 검색) dispatch 를 강제하라. 유저 반복 신고 = 내 검증 범위 밖에 버그가 있다는 뜻.",
+      "enabled": true
+    }
+  ]
+}

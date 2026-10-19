@@ -1,0 +1,17 @@
+# runtime
+node_modules/
+data/sessions/
+data/events/
+data/attachments/
+data/logs/
+data/cache/
+data/thumbs/
+data/backups/
+data/token-backup/
+data/.auth-token
+# build artifacts
+dist/*.zip
+# OS
+.DS_Store
+Thumbs.db
+*.log

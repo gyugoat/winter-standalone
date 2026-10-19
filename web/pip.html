@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>winter3 monitor</title>
+  <link rel="stylesheet" href="/css/pip.css" />
+  <meta http-equiv="Cache-Control" content="no-store" />
+</head>
+<body>
+  <header id="pip-head">
+    <span class="pip-dot"></span>
+    <span class="pip-title">winter3 — 진행 중</span>
+    <span id="pip-count">0</span>
+    <button id="pip-mute" title="소리 켜기/끄기" aria-label="음소거">🔔</button>
+  </header>
+  <main id="pip-list">
+    <div id="pip-empty">진행 중인 세션 없음</div>
+  </main>
+  <footer id="pip-foot">
+    <span id="pip-status">연결 중...</span>
+  </footer>
+  <script type="module" src="/js/pip-monitor.js"></script>
+</body>
+</html>

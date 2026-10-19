@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>winter3</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <!-- highlight.js 테마 (atom-one-dark) — 로컬 vendor 파일. CDN 의존 금지: 오프라인에서도 UI 떠야 함. -->
+  <link rel="stylesheet" href="/vendor/highlight-atom-one-dark.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <!-- highlight.js core + common languages (js/ts/py/bash/go/rust/md 등) — 로컬. -->
+  <script src="/vendor/highlight.min.js"></script>
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <script>
+    // FOUC 방지: activity 패널 default open. 사용자가 닫은 적 있을 때만 paint 부터 닫힘.
+    // documentElement 에 클래스 박아서 #activity-view 가 만들어지기 전에 CSS 가 hidden 결정.
+    // KEY 에 v2 suffix — default open 정책 도입 시 기존 LS='0' 강제 무효화.
+    // 안 그러면 전에 토글로 닫은 적 있는 사용자는 새 policy 적용 안 받음.
+    (function () {
+      var stored = localStorage.getItem('winter3:activity-open-v2');
+      var open = stored === null ? true : stored === '1';
+      if (!open) document.documentElement.classList.add('activity-closed');
+    })();
+  </script>
+</head>
+<body>
+  <aside id="icon-bar">
+    <button class="ib-btn ib-home" id="ib-home" title="홈 / diamond ◇" aria-label="홈">
+      <span class="diamond"></span>
+      <span id="rail-noti-dot" class="rail-noti-dot hidden"></span>
+    </button>
+    <button class="ib-btn ib-sidebar" id="ib-sidebar" title="사이드바 접기/펼치기 (⌘B)" aria-label="사이드바">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <button class="ib-btn" id="ib-new" title="새 대화 (⌘⇧N)" aria-label="새 대화">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <div class="ib-spacer"></div>
+    <button class="ib-btn" id="ib-activity" title="활동 패널 (⌘⇧A)" aria-label="활동">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8z"/></svg>
+    </button>
+    <button class="ib-btn" id="ib-pip" title="Multi-Session Monitor (PiP)" aria-label="PiP 모니터">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="4" width="18" height="14" rx="2"/><rect x="13" y="11" width="7" height="6" rx="1" fill="currentColor" stroke="none" opacity="0.5"/></svg>
+    </button>
+    <button class="ib-btn" id="ib-snow" title="배경 눈 (⌘⇧S)" aria-label="눈">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M19.1 4.9 4.9 19.1"/></svg>
+    </button>
+    <button class="ib-btn" id="ib-help" title="단축키 도움말 (⌘/)" aria-label="도움말">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 4.3 1.7c-.9.8-1.8 1.3-1.8 2.6"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+    </button>
+    <button class="ib-btn" id="ib-restart" title="서버 재시작 — 진행 중 작업 종료 후 적용" aria-label="서버 재시작">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.7-6.2"/><path d="M20.5 3.5v4.6h-4.6"/></svg>
+    </button>
+    <button class="ib-btn ib-settings" id="ib-settings" title="설정" aria-label="설정">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </aside>
+
+  <aside id="sidebar">
+    <div id="sidebar-head">
+      <span class="brand-diamond"></span>
+      <h1 class="brand-title">Winter</h1>
+      <span class="brand-badge">winter</span>
+      <span class="brand-status" title="online"></span>
+    </div>
+    <div id="search-wrap">
+      <input id="search-input" type="search" placeholder="대화 검색" autocomplete="off" spellcheck="false" aria-label="대화 검색" />
+    </div>
+    <!-- 축 4 Projects — 사이드바 1급 (결정 11). Recents(#session-list) 는 그대로 보존, 추가 섹션.
+         projects.js 가 렌더. project 0개 + 생성 입력 닫힘이면 리스트만 비고 헤더는 유지 (입구 상시 노출). -->
+    <section id="projects-section">
+      <div class="proj-section-head">
+        <button id="proj-collapse" class="proj-head-btn proj-title" aria-expanded="true" title="Projects 접기/펼치기">Projects</button>
+        <button id="proj-archived-toggle" class="proj-head-btn dim" aria-pressed="false" title="아카이브된 프로젝트 표시">보관</button>
+        <button id="proj-new" class="proj-head-btn" title="새 프로젝트" aria-label="새 프로젝트">+</button>
+      </div>
+      <div id="proj-new-row" class="hidden">
+        <input id="proj-new-input" type="text" placeholder="프로젝트 이름 — Enter 생성, Esc 취소" maxlength="80" autocomplete="off" spellcheck="false" />
+      </div>
+      <ul id="projects-list"></ul>
+    </section>
+    <!-- 축 5 Artifacts — 사이드바 섹션 + REA 서브 (결정 17: Artifacts 서브 패턴). artifacts.js 가 렌더.
+         서브 섹션 구조 — 추후 다른 artifact 유형 (voice, gen 산출 등) 이 섹션 추가되는 자리. -->
+    <section id="artifacts-section">
+      <div class="proj-section-head">
+        <button id="art-collapse" class="proj-head-btn proj-title" aria-expanded="true" title="Artifacts 접기/펼치기">Artifacts</button>
+        <button id="art-refresh" class="proj-head-btn dim" title="REA 목록 새로고침">↻</button>
+      </div>
+      <div class="art-sub-head">REA 해체분석</div>
+      <ul id="rea-list"></ul>
+    </section>
+    <ul id="session-list"></ul>
+    <!-- Background job 진행 패널 — jobs.js 가 폴링 후 렌더. job 0개면 display:none. -->
+    <section id="jobs-section" style="display:none">
+      <div class="jobs-section-head">
+        <span class="jobs-section-title">작업</span>
+      </div>
+      <div id="jobs-list"></div>
+    </section>
+    <ul id="search-result-list" aria-label="검색 결과"></ul>
+    <div id="sidebar-footer">
+      <div id="plan-badge" class="hidden" title="Rate limit 상태">
+        <span class="plan-dot"></span>
+        <span class="plan-label">limit</span>
+        <span class="plan-window">—</span>
+        <span class="plan-reset">—</span>
+      </div>
+      <span id="running-indicator" class="hidden">● 진행 중 <span id="running-timer">0.0s</span></span>
+    </div>
+  </aside>
+
+  <main id="chat">
+    <header id="chat-header">
+      <span id="chat-title-accent">◇</span>
+      <span id="chat-title">새 대화</span>
+      <span id="chat-meta"></span>
+      <!-- 축 4 — 세션 ↔ Project 바인딩 드롭다운. projects.js 가 옵션 채움 + change 시 PATCH /sessions/:id {projectId}. -->
+      <select id="chat-project" class="hidden" title="이 세션의 프로젝트 — 선택 즉시 할당" aria-label="프로젝트 할당"></select>
+      <button id="mob-new-btn" class="mob-nav-btn" aria-label="새 대화" title="새 대화"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button id="mob-sidebar-btn" class="mob-nav-btn" aria-label="세션 목록" title="세션 목록"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <button id="mob-activity-btn" class="mob-nav-btn" aria-label="활동 패널" title="활동"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8z"/></svg></button>
+    </header>
+    <!-- #57 — send 실패/서버 다운 시 지속 빨강 배너. 정상 시 hidden.
+         app.js 의 showOfflineBanner()/hideOfflineBanner() 가 제어. toast 는 사라지므로 부적합. -->
+    <div id="offline-banner" class="hidden" role="status" aria-live="assertive">
+      <span class="offline-banner-icon">⚠</span>
+      <span class="offline-banner-msg">서버 응답 없음 — 연결 복구 대기 중</span>
+      <span class="offline-banner-queue"></span>
+    </div>
+    <!-- canary 모니터링 미해소 알림 배너 — data/logs/CANARY_ALERT 플래그 존재 시 표시.
+         dismiss 없음: 플래그 소멸(모니터링 스크립트 자동 삭제) = 해소. app.js updateCanaryBanner() 제어. -->
+    <div id="canary-banner" class="hidden" role="status" aria-live="assertive">
+      <span class="canary-banner-icon">⚠</span>
+      <span class="canary-banner-msg"></span>
+    </div>
+    <!-- 서버 재시작 진행 배너 — POST /restart 후 /health poll 동안 표시.
+         app.js requestServerRestart() 제어. 재기동 확인 시 reload 로 자연 소멸. -->
+    <div id="restart-banner" class="hidden" role="status" aria-live="assertive">
+      <span class="restart-banner-icon">↻</span>
+      <span class="restart-banner-msg"></span>
+    </div>
+    <section id="messages" aria-live="polite"></section>
+    <button id="scroll-to-bottom" class="hidden" title="최신으로 (⌘↓)" aria-label="최신으로 스크롤">↓</button>
+    <!-- About modal — server 가 진짜 노출하는 정보만. cosmetic 거짓 X. -->
+    <div id="about-modal" class="hidden" role="dialog" aria-modal="true">
+      <div class="about-inner">
+        <button class="about-close" type="button" aria-label="닫기">×</button>
+        <h3>About winter3</h3>
+        <pre id="about-body">Loading…</pre>
+      </div>
+    </div>
+    <div id="drop-overlay" class="hidden">
+      <div class="drop-overlay-inner">
+        <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>이미지를 여기에 놓으세요</span>
+      </div>
+    </div>
+    <div id="empty-state" class="hidden">
+      <div class="empty-diamond"></div>
+      <h2 class="empty-greeting">Winter</h2>
+      <div class="empty-meta" id="empty-meta">Loading…</div>
+      <div class="empty-prompts">
+        <button class="empty-card" data-q="지금 작업 중인 winter3 코드 구조를 간단히 요약해줘">
+          <span class="empty-card-icon">◇</span>
+          <span class="empty-card-title">코드 구조 요약</span>
+          <span class="empty-card-sub">Explore 에이전트로 살펴보기</span>
+        </button>
+        <button class="empty-card" data-q="서버 상태랑 최근 로그에 이상 없는지 확인해줘">
+          <span class="empty-card-icon">◇</span>
+          <span class="empty-card-title">서버 상태 점검</span>
+          <span class="empty-card-sub">health + 로그 훑기</span>
+        </button>
+        <button class="empty-card" data-q="최근 Gmail 메일 제목 5개만">
+          <span class="empty-card-icon">◇</span>
+          <span class="empty-card-title">Gmail 훑기</span>
+          <span class="empty-card-sub">최근 메일 5개</span>
+        </button>
+        <button class="empty-card" data-q="오늘 할 일 우선순위 3개만 말해줘">
+          <span class="empty-card-icon">◇</span>
+          <span class="empty-card-title">오늘 할 일</span>
+          <span class="empty-card-sub">우선순위 3개</span>
+        </button>
+      </div>
+    </div>
+    <form id="composer">
+      <!-- Multi-task progress stack — Agent tool 호출별 카드 (#19 V2).
+           form 안 첫 자식 = composer flex column 의 자연스러운 자리. -->
+      <div id="task-stack" aria-live="polite"></div>
+      <div id="composer-hint" title="Click for full system info (about modal)">Loading…</div>
+      <div id="composer-row">
+        <button id="attach-btn" type="button" title="파일 첨부 — 이미지/PDF/텍스트 (drop/paste)" aria-label="첨부">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.33 3.33 0 0 1 4.72 4.72l-9.2 9.19a1.67 1.67 0 0 1-2.36-2.36l8.48-8.48"/></svg>
+        </button>
+        <input id="attach-input" type="file" accept="image/*,application/pdf,text/*,.md,.markdown,.csv,.tsv,.json,.log,.js,.mjs,.cjs,.ts,.tsx,.jsx,.py,.rb,.go,.rs,.java,.c,.cc,.cpp,.h,.hpp,.cs,.sh,.bash,.zsh,.sql,.yml,.yaml,.toml,.ini,.env,.cfg,.conf,.html,.htm,.xml,.svg,.css,.scss,.less,.vue" multiple hidden />
+        <textarea id="input" placeholder="메시지 입력 — Enter 전송, Shift+Enter 줄바꿈" rows="1"></textarea>
+        <button type="button" id="research-toggle" title="리서치 모드 — 이번 메시지만" aria-pressed="false">리서치</button>
+        <button id="send" type="submit" title="보내기 (Enter)">↑</button>
+        <button id="kill" type="button" class="hidden" title="중단">■</button>
+      </div>
+      <div id="attach-preview" class="hidden"></div>
+      <!-- 축 5 REA — composer attach drop zone (결정 14: "집어넣으면 바로 해체분석").
+           이미지 drop(#chat 전역) 과 별개 — 여기 drop 은 REA 파이프라인으로. artifacts.js 가 제어. -->
+      <div id="rea-drop" title="파일을 여기에 놓으면 해체분석 (REA) — 세션에 ref 기록">
+        <span class="rea-drop-icon">◇</span>
+        <span class="rea-drop-label">해체분석 drop — zip/asar/tar/exe/so/dylib …</span>
+      </div>
+    </form>
+  </main>
+
+  <!-- default open. head 의 inline script (.activity-closed) + activity.js:applyInitialPanelState 가 localStorage 보고 hidden 토글. -->
+  <aside id="activity-view">
+    <header class="activity-header">
+      <span class="activity-title">활동</span>
+      <button id="close-activity" aria-label="닫기">✕</button>
+    </header>
+    <div id="activity-list"></div>
+    <div id="activity-empty">
+      <span>활동 없음</span>
+      <small>tool 호출이 있으면 여기에 카드로 쌓입니다</small>
+    </div>
+  </aside>
+
+  <div id="activity-modal" class="hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <header class="modal-head">
+        <span id="activity-modal-title">tool</span>
+        <button id="activity-modal-close" aria-label="닫기">✕</button>
+      </header>
+      <div id="activity-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- 축 5 REA 상세 모달 — result.md + mechanical (strings/tree/grep) 패널. artifacts.js 가 제어. -->
+  <div id="rea-modal" class="hidden" role="dialog" aria-modal="true">
+    <div class="modal-card rea-card">
+      <header class="modal-head">
+        <span id="rea-modal-title">REA</span>
+        <button id="rea-modal-close" aria-label="닫기">✕</button>
+      </header>
+      <div id="rea-modal-tabs">
+        <button data-tab="result" class="on" type="button">result</button>
+        <button data-tab="tree" type="button">tree</button>
+        <button data-tab="strings" type="button">strings</button>
+        <button data-tab="grep" type="button">grep</button>
+      </div>
+      <pre id="rea-modal-body"></pre>
+    </div>
+  </div>
+
+  <div id="cheatsheet-modal" class="hidden" role="dialog" aria-modal="true">
+    <div class="modal-card cheatsheet-card">
+      <header class="modal-head">
+        <span>단축키</span>
+        <button id="cheatsheet-close" aria-label="닫기">✕</button>
+      </header>
+      <div id="cheatsheet-body"></div>
+    </div>
+  </div>
+
+  <!-- #39 V6 — 이미지 첨부 확인 / 실패 차단 모달 -->
+  <div id="attach-confirm-modal" class="hidden" role="dialog" aria-modal="true">
+    <div class="modal-card attach-confirm-card">
+      <header class="modal-head">
+        <span id="attach-confirm-title">이미지 첨부 확인</span>
+        <button id="attach-confirm-close" aria-label="닫기">✕</button>
+      </header>
+      <div id="attach-confirm-body">
+        <img id="attach-confirm-preview" src="" alt="미리보기" />
+        <p id="attach-confirm-desc"></p>
+        <div id="attach-confirm-actions">
+          <button id="attach-confirm-ok" class="attach-btn-ok">첨부</button>
+          <button id="attach-confirm-cancel" class="attach-btn-cancel">취소</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mob-backdrop" class="mob-backdrop hidden"></div>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
